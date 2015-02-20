@@ -497,14 +497,15 @@ namespace DrRobot.JaguarControl
             double goalX = x - desiredX;
             double goalY = y - desiredY;
             double dTheta = t - desiredT;
+            Console.WriteLine("X,Y (" + x.ToString() + " , " + y.ToString() + " )");
+            Console.WriteLine("desired X,Y (" + desiredX.ToString() + " , " + desiredY.ToString() + " )");
 
-
-            double desiredV, desiredW;
+            double desiredV, desiredW,pho,alpha,beta;
             if (goalX < 0)
             { //we are headed in the backward direction
-                double pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                double alpha = -dTheta + Math.Atan2(-goalY, -goalX);//
-                double beta = -dTheta - alpha;
+                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
+                alpha = -dTheta + Math.Atan2(-goalY, -goalX);//
+                beta = -dTheta - alpha;
 
                 //alpha = normalizeAngle(alpha, 1, t); // hmmm
                 //beta = normalizeAngle(beta, 1, t); //hmm hmm
@@ -514,15 +515,17 @@ namespace DrRobot.JaguarControl
             }
             else
             {// we are headed forward
-                double pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));
-                double alpha = -dTheta + Math.Atan2(goalY, goalX);
-                double beta = -dTheta - alpha;
+                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));
+                alpha = -dTheta + Math.Atan2(goalY, goalX);
+                beta = -dTheta - alpha;
                 // alpha = normalizeAngle(alpha, 1, t);
                 beta = normalizeAngle(beta, 1, t);
                 desiredV = Kpho * pho;
                 desiredW = Kalpha * alpha + Kbeta * beta;
 
             }
+            Console.WriteLine("desired pho, alpha,beta (" + pho.ToString() + " , " + alpha.ToString() + " , " + beta.ToString() + " )");
+            Console.WriteLine("desiredV, desiredW (" + desiredV.ToString() + " , " + desiredW.ToString() + " )");
 
 
 
