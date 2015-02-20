@@ -504,7 +504,7 @@ namespace DrRobot.JaguarControl
 
             double goalX = desiredX -x;
             double goalY = desiredY-y;
-            double dTheta = desiredT-t;
+            double dTheta = t-desiredT;// QUESTION!
             Console.WriteLine("X,Y (" + x.ToString() + " , " + y.ToString() + " )");
             Console.WriteLine("desired X,Y (" + desiredX.ToString() + " , " + desiredY.ToString() + " )");
 
@@ -512,8 +512,8 @@ namespace DrRobot.JaguarControl
             if (goalX < 0)
             { //we are headed in the backward direction
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                alpha = -dTheta + Math.Atan2(-goalY, -goalX);//
-                beta = -dTheta - alpha;
+                alpha = -t + Math.Atan2(-goalY, -goalX);//
+                beta = -t - alpha;
 
                 alpha = newNormalizeAngle(alpha);
                 beta = newNormalizeAngle(beta);
@@ -525,8 +525,8 @@ namespace DrRobot.JaguarControl
             {// we are headed forward
                 //transform coordinate systems
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0)); //pho is linear distance
-                alpha = -dTheta + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
-                beta = -dTheta - alpha; //angle between pho idk
+                alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
+                beta = -t - alpha; //angle between pho idk
                 alpha = newNormalizeAngle(alpha);
                 beta = newNormalizeAngle(beta);
                 desiredV = Kpho * pho;
