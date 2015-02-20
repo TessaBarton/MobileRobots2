@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -532,26 +532,40 @@ namespace DrRobot.JaguarControl
 
             }
 
-            double L = 2 * robotRadius;
             //calculate rotational velocities, convert to wheel rotation rates
             double rotVelocity1 = (desiredW/2)+(desiredV /(2*robotRadius));
             double rotVelocity2 = (desiredW /2) -(desiredV /( 2 * robotRadius));
+            
+            float desiredRotRateRTemp = (float) ((2 * robotRadius * rotVelocity1) / wheelRadius);
+            float desiredRotRateLTemp = (float)((-2 * robotRadius * rotVelocity2) / wheelRadius);
 
-            desiredRotRateR = (short)((2 * robotRadius * rotVelocity1) / wheelRadius);
-            desiredRotRateL = (short)((-2 * robotRadius * rotVelocity2) / wheelRadius);
+
+            if (desiredRotRateRTemp > 0.25)
+              desiredRotRateRTemp = (float) 0.25;
+            if (desiredRotRateRTemp < -0.25)
+                desiredRotRateRTemp = (float)-0.25;
+
+            if (desiredRotRateLTemp > 0.25)
+                desiredRotRateLTemp = (float)0.25;
+            if (desiredRotRateLTemp < -0.25)
+                desiredRotRateLTemp = (float)-0.25;
+
+
+             
             // convert to encoder pulses per second
 
             desiredRotRateR = (short)(desiredRotRateR * (1 / (2 * Math.PI * wheelRadius)) * 190);
-            desiredRotRateL = (short)((-1) * desiredRotRateL * (1 / (2 * Math.PI * wheelRadius)) * 190);
+            desiredRotRateL = (short)((desiredRotRateL * (1 / (2 * Math.PI * wheelRadius)) * 190));
 
-            desiredRotRateR = Math.Min((short)encoderMax, desiredRotRateR);
-            desiredRotRateL = Math.Min((short)encoderMax, desiredRotRateL);
+            
+           // desiredRotRateR = Math.Min((short)encoderMax, desiredRotRateR);
+            // desiredRotRateL = Math.Min((short) (encoderMax), desiredRotRateL);
 
             if (jaguarControl.Simulating())
-                simulatedJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateR, (short)desiredRotRateL, 0);
+                simulatedJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
             else
             {
-                realJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateR, (short)desiredRotRateL, 0);
+                realJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
             }
         }
 
