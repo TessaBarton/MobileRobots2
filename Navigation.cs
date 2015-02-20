@@ -494,8 +494,8 @@ namespace DrRobot.JaguarControl
         private void FlyToSetPoint()
         {
 
-            double goalX = x - desiredX;
-            double goalY = y - desiredY;
+            double goalX = desiredX -x;
+            double goalY = desiredY -y;
             double dTheta = t - desiredT;
             Console.WriteLine("X,Y (" + x.ToString() + " , " + y.ToString() + " )");
             Console.WriteLine("desired X,Y (" + desiredX.ToString() + " , " + desiredY.ToString() + " )");
