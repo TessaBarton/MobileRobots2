@@ -496,7 +496,7 @@ namespace DrRobot.JaguarControl
 
             double goalX = x - desiredX;
             double goalY = y - desiredY;
-            double dTheta = t - desiredT;
+            double dTheta = t - desiredT; //dTheta
             Console.WriteLine("X,Y (" + x.ToString() + " , " + y.ToString() + " )");
             Console.WriteLine("desired X,Y (" + desiredX.ToString() + " , " + desiredY.ToString() + " )");
 

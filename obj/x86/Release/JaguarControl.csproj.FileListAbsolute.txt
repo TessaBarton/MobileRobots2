@@ -460,3 +460,11 @@ C:\Users\HMC\Desktop\E190Q_Tessa\E190Q-BaseCode-03\obj\x86\Release\DrRobot.Jagua
 C:\Users\HMC\Desktop\E190Q_Tessa\E190Q-BaseCode-03\obj\x86\Release\JaguarControl.csproj.GenerateResource.Cache
 C:\Users\HMC\Desktop\E190Q_Tessa\E190Q-BaseCode-03\obj\x86\Release\JaguarControl.exe
 C:\Users\HMC\Desktop\E190Q_Tessa\E190Q-BaseCode-03\obj\x86\Release\JaguarControl.pdb
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\Interop.AXISMEDIACONTROLLib.dll
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\Interop.DRROBOTSentinelCONTROLLib.dll
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\Interop.EARTHLib.dll
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\AxInterop.AXISMEDIACONTROLLib.dll
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\AxInterop.DRROBOTSentinelCONTROLLib.dll
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\JaguarControl.csproj.ResolveComReference.cache
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\JaguarControl.exe
+C:\Users\Olivier\Desktop\MobileRobots2\obj\x86\Release\JaguarControl.pdb
