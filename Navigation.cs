@@ -491,6 +491,13 @@ namespace DrRobot.JaguarControl
         // This function is called at every iteration of the control loop
         // if used, this function can drive the robot to any desired
         // robot state. It does not check for collisions
+        double newNormalizeAngle(double angle)
+        {
+            double newAngle = angle;
+            while (newAngle <= -3.1415) newAngle += 6.283;
+            while (newAngle > 3.1415) newAngle -= 6.283;
+            return newAngle;
+        }
         private void FlyToSetPoint()
         {
 
@@ -507,35 +514,36 @@ namespace DrRobot.JaguarControl
                 alpha = -dTheta + Math.Atan2(-goalY, -goalX);//
                 beta = -dTheta - alpha;
 
-                //alpha = normalizeAngle(alpha, 1, t); // hmmm
-                //beta = normalizeAngle(beta, 1, t); //hmm hmm
+                alpha = newNormalizeAngle(alpha);
+                beta = newNormalizeAngle(beta);
                 desiredV = -Kpho * pho;
                 desiredW = Kalpha * alpha + Kbeta * beta;
 
             }
             else
             {// we are headed forward
-                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));
-                alpha = -dTheta + Math.Atan2(goalY, goalX);
-                beta = -dTheta - alpha;
-                // alpha = normalizeAngle(alpha, 1, t);
-                beta = normalizeAngle(beta, 1, t);
+                //transform coordinate systems
+                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0)); //pho is linear distance
+                alpha = -dTheta + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
+                beta = -dTheta - alpha; //angle between pho idk
+                alpha = newNormalizeAngle(alpha);
+                beta = newNormalizeAngle(beta);
                 desiredV = Kpho * pho;
-                desiredW = Kalpha * alpha + Kbeta * beta;
+                desiredW = (Kalpha * alpha) + (Kbeta * beta); //correct
 
             }
             Console.WriteLine("desired pho, alpha,beta (" + pho.ToString() + " , " + alpha.ToString() + " , " + beta.ToString() + " )");
             Console.WriteLine("desiredV, desiredW (" + desiredV.ToString() + " , " + desiredW.ToString() + " )");
-
-
-
-            double w2 = (desiredV - robotRadius * desiredW) / -(2 * robotRadius);
-            double w1 = (desiredV + robotRadius * desiredW) / (2 * robotRadius);
-            desiredRotRateR = (short)(2 * robotRadius * w1 / wheelRadius);
-            desiredRotRateL = (short)(2 * robotRadius * w1 / wheelRadius);
+            //calculate rotational velocities, convert to wheel rotation rates
+            double rotVelocity1 = desiredW - (((desiredV / robotRadius) - desiredW) / 2);
+            double rotVelocity2 = ((desiredV / robotRadius) - desiredW) / 2;
+            desiredRotRateR = (short)(2 * robotRadius * rotVelocity1 / wheelRadius);
+            desiredRotRateL = (short)(-2 * robotRadius * rotVelocity2 / wheelRadius);
             // convert to encoder pulses per second
+
             desiredRotRateR = (short)(desiredRotRateR * (1 / (2 * Math.PI * wheelRadius)) * 190);
             desiredRotRateL = (short)((-1) * desiredRotRateL * (1 / (2 * Math.PI * wheelRadius)) * 190);
+
             desiredRotRateR = Math.Min((short)encoderMax, desiredRotRateR);
             desiredRotRateL = Math.Min((short)encoderMax, desiredRotRateL);
 
