@@ -498,6 +498,18 @@ namespace DrRobot.JaguarControl
             while (newAngle > 3.1415) newAngle -= 6.283;
             return newAngle;
         }
+        double reasonableVelocity(double rawVelocity)
+        {
+            double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
+            double newVelocity= rawVelocity;
+            // Make sure we don't exceed bounds
+            while(rawVelocity > maxRadPerSec)
+                newVelocity = rawVelocity / 10;// (rawVelocity - maxRadPerSec);
+            while(rawVelocity < -maxRadPerSec)
+                newVelocity = rawVelocity / 10;// (Math.Abs(rawVelocity) - maxRadPerSec);
+            return newVelocity;
+
+        }
         private void FlyToSetPoint()
         {
 
@@ -533,33 +545,21 @@ namespace DrRobot.JaguarControl
             }
 
             //calculate rotational velocities, convert to wheel rotation rates
-            double rotVelocity1 = (desiredW/2)+(desiredV /(2*robotRadius));
+            double rotVelocity1 = (desiredW/2) + (desiredV /(2*robotRadius));
             double rotVelocity2 = (desiredW /2) -(desiredV /( 2 * robotRadius));
-            
-            float desiredRotRateRTemp = (float) ((2 * robotRadius * rotVelocity1) / wheelRadius);
-            float desiredRotRateLTemp = (float)((-2 * robotRadius * rotVelocity2) / wheelRadius);
+           
+            double desiredRotRateRTemp = (double) ((2 * robotRadius * rotVelocity1) / wheelRadius);
+            double desiredRotRateLTemp = (double)((-2 * robotRadius * rotVelocity2) / wheelRadius);
 
-
-            if (desiredRotRateRTemp > 0.25)
-              desiredRotRateRTemp = (float) 0.25;
-            if (desiredRotRateRTemp < -0.25)
-                desiredRotRateRTemp = (float)-0.25;
-
-            if (desiredRotRateLTemp > 0.25)
-                desiredRotRateLTemp = (float)0.25;
-            if (desiredRotRateLTemp < -0.25)
-                desiredRotRateLTemp = (float)-0.25;
-
+            desiredRotRateRTemp = reasonableVelocity(desiredRotRateRTemp);
+           desiredRotRateLTemp = reasonableVelocity(desiredRotRateLTemp);
 
              
             // convert to encoder pulses per second
 
-            desiredRotRateR = (short)(desiredRotRateR * (1 / (2 * Math.PI * wheelRadius)) * 190);
-            desiredRotRateL = (short)((desiredRotRateL * (1 / (2 * Math.PI * wheelRadius)) * 190));
+            desiredRotRateR = (short)(desiredRotRateRTemp * (1 / (2 * Math.PI * wheelRadius)) * 190);
+            desiredRotRateL = (short)((desiredRotRateLTemp * (1 / (2 * Math.PI * wheelRadius)) * 190));
 
-            
-           // desiredRotRateR = Math.Min((short)encoderMax, desiredRotRateR);
-            // desiredRotRateL = Math.Min((short) (encoderMax), desiredRotRateL);
 
             if (jaguarControl.Simulating())
                 simulatedJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
