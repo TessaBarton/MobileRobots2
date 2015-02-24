@@ -551,7 +551,7 @@ namespace DrRobot.JaguarControl
             double rotVelocity2 = (desiredW / 2) - (desiredV / (2 * robotRadius));
 
             double omegaR = ((2 * robotRadius * rotVelocity1) / wheelRadius);
-            double omegaL = ((2 * robotRadius * rotVelocity2) / wheelRadius);
+            double omegaL = ((-2 * robotRadius * rotVelocity2) / wheelRadius);
 
             omegaR = omegaR / 10;
             omegaL = omegaL / 10;
