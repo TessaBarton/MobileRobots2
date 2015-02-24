@@ -549,16 +549,20 @@ namespace DrRobot.JaguarControl
             //calculate rotational velocities, convert to wheel rotation rates
             double rotVelocity1 = (desiredW / 2) + (desiredV / (2 * robotRadius));
             double rotVelocity2 = (desiredW / 2) - (desiredV / (2 * robotRadius));
-
+            //transform rot velocity into wheel's contributions
             double omegaR = ((2 * robotRadius * rotVelocity1) / wheelRadius);
             double omegaL = ((-2 * robotRadius * rotVelocity2) / wheelRadius);
-
-            omegaR = omegaR / 10;
-            omegaL = omegaL / 10;
-
-
-
-
+            // ensure that the velocities do not exceed the maximum velocity
+            double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
+            if ((Math.Abs(omegaL) > maxRadPerSec) & (Math.Abs(omegaR) > maxRadPerSec))
+            {
+                omegaR = omegaR / 10;
+                omegaL = omegaL / 10;
+            }
+            else if (Math.Abs(omegaL) > maxRadPerSec)
+                omegaL = omegaL / 10;
+            else if (Math.Abs(omegaR) > maxRadPerSec)
+                omegaR = omegaR / 10;
 
             // convert to encoder pulses per second
 
@@ -573,6 +577,7 @@ namespace DrRobot.JaguarControl
                 realJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
             }
         }
+
 
 
 
