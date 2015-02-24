@@ -498,21 +498,12 @@ namespace DrRobot.JaguarControl
             while (newAngle > 3.1415) newAngle -= 6.283;
             return newAngle;
         }
-        unsafe void reasonableVelocity(double* velocityL, double* velocityR)
+        void reasonableVelocity(double velocityL, double velocityR)
         {
             // double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
             // Make sure we don't exceed bounds
             
-            if (*velocityL > *velocityR)
-            {
-                *velocityL = *velocityL - *velocityR;
-                *velocityR = 0;
-            }
-            else if (velocityL > velocityR)
-            {
-                *velocityR = *velocityR - *velocityL;
-                *velocityL = 0;
-            }
+            
             
             /* while(rawVelocity > maxRadPerSec)
                 newVelocity = rawVelocity / 10; // (rawVelocity - maxRadPerSec);
@@ -521,7 +512,7 @@ namespace DrRobot.JaguarControl
             return newVelocity;*/
 
         }
-        unsafe private void FlyToSetPoint()
+        private void FlyToSetPoint()
         {
 
 
@@ -562,14 +553,8 @@ namespace DrRobot.JaguarControl
             double desiredRotRateR = (double) ((2 * robotRadius * rotVelocity1) / wheelRadius);
             double desiredRotRateL = (double)((-2 * robotRadius * rotVelocity2) / wheelRadius);
             
-            double* pR;
-            double* pL;
-
-            pR = &desiredRotRateR;
-            pL = &desiredRotatedL;
-
-            int[ rightAndLeft;
-            reasonableVelocity (pL, pR);
+            desiredRotRateR = desiredRotRateR / 10;
+            desiredRotRateL = desiredRotRateL / 10; 
 
 
             
