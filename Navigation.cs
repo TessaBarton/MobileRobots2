@@ -498,19 +498,30 @@ namespace DrRobot.JaguarControl
             while (newAngle > 3.1415) newAngle -= 6.283;
             return newAngle;
         }
-        double reasonableVelocity(double rawVelocity)
+        unsafe void reasonableVelocity(double* velocityL, double* velocityR)
         {
-            double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
-            double newVelocity= rawVelocity;
+            // double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
             // Make sure we don't exceed bounds
-            while(rawVelocity > maxRadPerSec)
-                newVelocity = rawVelocity / 10;// (rawVelocity - maxRadPerSec);
+            
+            if (*velocityL > *velocityR)
+            {
+                *velocityL = *velocityL - *velocityR;
+                *velocityR = 0;
+            }
+            else if (velocityL > velocityR)
+            {
+                *velocityR = *velocityR - *velocityL;
+                *velocityL = 0;
+            }
+            
+            /* while(rawVelocity > maxRadPerSec)
+                newVelocity = rawVelocity / 10; // (rawVelocity - maxRadPerSec);
             while(rawVelocity < -maxRadPerSec)
-                newVelocity = rawVelocity / 10;// (Math.Abs(rawVelocity) - maxRadPerSec);
-            return newVelocity;
+                newVelocity = rawVelocity / 10; // (Math.Abs(rawVelocity) - maxRadPerSec);
+            return newVelocity;*/
 
         }
-        private void FlyToSetPoint()
+        unsafe private void FlyToSetPoint()
         {
 
 
@@ -548,12 +559,21 @@ namespace DrRobot.JaguarControl
             double rotVelocity1 = (desiredW/2) + (desiredV /(2*robotRadius));
             double rotVelocity2 = (desiredW /2) -(desiredV /( 2 * robotRadius));
            
-            double desiredRotRateRTemp = (double) ((2 * robotRadius * rotVelocity1) / wheelRadius);
-            double desiredRotRateLTemp = (double)((-2 * robotRadius * rotVelocity2) / wheelRadius);
+            double desiredRotRateR = (double) ((2 * robotRadius * rotVelocity1) / wheelRadius);
+            double desiredRotRateL = (double)((-2 * robotRadius * rotVelocity2) / wheelRadius);
+            
+            double* pR;
+            double* pL;
 
-            desiredRotRateRTemp = reasonableVelocity(desiredRotRateRTemp);
-           desiredRotRateLTemp = reasonableVelocity(desiredRotRateLTemp);
+            pR = &desiredRotRateR;
+            pL = &desiredRotatedL;
 
+            int[ rightAndLeft;
+            reasonableVelocity (pL, pR);
+
+
+            
+           
              
             // convert to encoder pulses per second
 
