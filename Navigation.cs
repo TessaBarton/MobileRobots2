@@ -494,24 +494,25 @@ namespace DrRobot.JaguarControl
         double newNormalizeAngle(double angle)
         {
             double newAngle = angle;
-            while (newAngle <= -Math.PI) newAngle += 2*Math.PI;
-            while (newAngle > Math.PI) newAngle -= 2*Math.PI;
+            while (newAngle <= -Math.PI) newAngle = newAngle + 2 * Math.PI;
+            while (newAngle > Math.PI) newAngle = newAngle + 2 * Math.PI;
             return newAngle;
         }
         private void FlyToSetPoint()
         {
-
-
             double goalX = desiredX - x;
             double goalY = desiredY - y;
-            double dTheta = desiredT - t;// QUESTION!
+           
+
+            // t = theta
+            // 
 
             double desiredV, desiredW, pho, alpha, beta;
             if (goalX < 0)
             { //we are headed in the backward direction
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                alpha = -t + Math.Atan2(-goalY, -goalX);//
-                beta = -t - alpha + dTheta;
+                alpha = -t + Math.Atan2(-goalY, -goalX);
+                beta = -t - alpha - desiredT;
 
                 alpha = newNormalizeAngle(alpha);
                 beta = newNormalizeAngle(beta);
@@ -519,12 +520,38 @@ namespace DrRobot.JaguarControl
                 desiredW = Kalpha * alpha + Kbeta * beta;
 
             }
+            else if ((Math.Abs(goalX) <= .05) & (Math.Abs(goalY) <= .05))
+            {
+                pho = 0;
+                if (goalX < 0)
+                {
+
+                    alpha = -t + Math.Atan2(-goalY, -goalX);//
+                    beta = -t - alpha - desiredT;
+
+                    alpha = newNormalizeAngle(alpha);
+                    beta = newNormalizeAngle(beta);
+                    desiredV = -Kpho * pho;
+                    desiredW = Kalpha * alpha + Kbeta * beta;
+                }
+                else
+                {
+                    alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
+                    beta = -t - alpha - desiredT; //angle between pho idk
+                    alpha = newNormalizeAngle(alpha);
+                    beta = newNormalizeAngle(beta);
+                    desiredV = Kpho * pho;
+                    desiredW = (Kalpha * alpha) + (Kbeta * beta); //correct
+                }
+               
+            }
+
             else
             {// we are headed forward
                 //transform coordinate systems
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0)); //pho is linear distance
                 alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
-                beta = -t - alpha + dTheta; //angle between pho idk
+                beta = -t - alpha - desiredT; //angle between pho idk
                 alpha = newNormalizeAngle(alpha);
                 beta = newNormalizeAngle(beta);
                 desiredV = Kpho * pho;
