@@ -508,7 +508,8 @@ namespace DrRobot.JaguarControl
             // 
 
             double desiredV, desiredW,deltaT, kTheta, pho, alpha, beta;
-            if (goalX < 0)
+            if ((-t + Math.Atan2(goalY, goalX)) > (Math.PI/2)) //need to check in the local c.f. alpha grea
+
             { //we are headed in the backward direction
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
                 alpha = -t + Math.Atan2(-goalY, -goalX);//
