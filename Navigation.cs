@@ -507,12 +507,12 @@ namespace DrRobot.JaguarControl
             // t = theta
             // 
 
-            double desiredV, desiredW, pho, alpha, beta;
+            double desiredV, desiredW,deltaT, kTheta, pho, alpha, beta;
             if (goalX < 0)
             { //we are headed in the backward direction
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                alpha = -t + Math.Atan2(-goalY, -goalX);
-                beta = -t - alpha - desiredT;
+                alpha = -t + Math.Atan2(-goalY, -goalX);//
+                beta = -t - alpha + desiredT;
 
                 alpha = newNormalizeAngle(alpha);
                 beta = newNormalizeAngle(beta);
@@ -520,32 +520,18 @@ namespace DrRobot.JaguarControl
                 desiredW = Kalpha * alpha + Kbeta * beta;
 
             }
-            else if ((Math.Abs(goalX) <= .05) & (Math.Abs(goalY) <= .05))
+            else if ((Math.Abs(goalX) <= .02) & (Math.Abs(goalY) <= .02))
             {
                 pho = 0;
-                if (goalX < 0)
-                {
+                kTheta= 2.0; // not sure yet
+                //if (goalX < 0)
+                //{
+                    deltaT = desiredT - t; // goal theta minus current theta
+                    deltaT = newNormalizeAngle(deltaT);
+                    desiredV = pho; // is 0 because pho is 0
+                    desiredW = deltaT * kTheta;
 
-                    alpha = -t + Math.Atan2(-goalY, -goalX);//
-                    beta = -t - alpha - desiredT;
-
-                    alpha = newNormalizeAngle(alpha);
-                    beta = newNormalizeAngle(beta);
-                    desiredV = -Kpho * pho;
-                    desiredW = Kalpha * alpha + Kbeta * beta;
-                }
-                else
-                {
-                    alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
-                    beta = -t - alpha - desiredT; //angle between pho idk
-                    alpha = newNormalizeAngle(alpha);
-                    beta = newNormalizeAngle(beta);
-                    desiredV = Kpho * pho;
-                    desiredW = (Kalpha * alpha) + (Kbeta * beta); //correct
-                }
-               
             }
-
             else
             {// we are headed forward
                 //transform coordinate systems
