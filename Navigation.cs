@@ -494,23 +494,9 @@ namespace DrRobot.JaguarControl
         double newNormalizeAngle(double angle)
         {
             double newAngle = angle;
-            while (newAngle <= -3.1415) newAngle += 6.283;
-            while (newAngle > 3.1415) newAngle -= 6.283;
+            while (newAngle <= -Math.PI) newAngle += 2*Math.PI;
+            while (newAngle > Math.PI) newAngle -= 2*Math.PI;
             return newAngle;
-        }
-        void reasonableVelocity(double velocityL, double velocityR)
-        {
-            // double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
-            // Make sure we don't exceed bounds
-
-
-
-            /* while(rawVelocity > maxRadPerSec)
-                newVelocity = rawVelocity / 10; // (rawVelocity - maxRadPerSec);
-            while(rawVelocity < -maxRadPerSec)
-                newVelocity = rawVelocity / 10; // (Math.Abs(rawVelocity) - maxRadPerSec);
-            return newVelocity;*/
-
         }
         private void FlyToSetPoint()
         {
