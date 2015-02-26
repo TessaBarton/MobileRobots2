@@ -508,7 +508,7 @@ namespace DrRobot.JaguarControl
             // 
 
             double desiredV, desiredW,deltaT, kTheta, pho, alpha, beta;
-            if (((-t + Math.Atan2(goalY, goalX)) > (Math.PI/2)) | ((-t + Math.Atan2(goalY, goalX)) < -(Math.PI/2)))
+            if (Math.abs((-t + Math.Atan2(goalY, goalX)) > (Math.PI/2)))
             //need to check in the local c.f. alpha grea
 
             { //we are headed in the backward direction
