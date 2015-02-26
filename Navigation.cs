@@ -39,7 +39,7 @@ namespace DrRobot.JaguarControl
         public bool runThread = true;
         public bool loggingOn;
         StreamWriter logFile;
-        public int deltaT = 10;
+        public int deltaT = 10; // Question is this the change in time?
         private static int encoderMax = 32767;
         public int pulsesPerRotation = 190;
         public double wheelRadius = 0.089;
@@ -362,16 +362,15 @@ namespace DrRobot.JaguarControl
             double K_i = 0.1;
             double K_d = 1;
 
-            double maxErr = 8000 / deltaT;
-
-
-            e_L = desiredRotRateL - diffEncoderPulseL / deltaT;
+            double maxErr = 8000 / deltaT;// to keep or not to keep.
+            
+            e_L = desiredRotRateL - diffEncoderPulseL / deltaT; // looks right
             e_R = desiredRotRateR - diffEncoderPulseR / deltaT;
 
-            e_sum_L = .9 * e_sum_L + e_L * deltaT;
+            e_sum_L = .9 * e_sum_L + e_L * deltaT;// keep track of the sum
             e_sum_R = .9 * e_sum_R + e_R * deltaT;
-
-            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr));
+            
+            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr)); // keep this sum less than max err. IDK why
             e_sum_R = Math.Max(-maxErr, Math.Min(e_sum_R, maxErr));
 
             u_L = ((K_p * e_L) + (K_i * e_sum_L) + (K_d * (e_L - e_L_last) / deltaT));
