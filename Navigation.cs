@@ -39,7 +39,7 @@ namespace DrRobot.JaguarControl
         public bool runThread = true;
         public bool loggingOn;
         StreamWriter logFile;
-        public int deltaT = 10; // Question is this the change in time?
+        public int deltaT = 10;
         private static int encoderMax = 32767;
         public int pulsesPerRotation = 190;
         public double wheelRadius = 0.089;
@@ -362,15 +362,16 @@ namespace DrRobot.JaguarControl
             double K_i = 0.1;
             double K_d = 1;
 
-            double maxErr = 8000 / deltaT;// to keep or not to keep.
-            
-            e_L = desiredRotRateL - diffEncoderPulseL / deltaT; // looks right
+            double maxErr = 8000 / deltaT;
+
+
+            e_L = desiredRotRateL - diffEncoderPulseL / deltaT;
             e_R = desiredRotRateR - diffEncoderPulseR / deltaT;
 
-            e_sum_L = .9 * e_sum_L + e_L * deltaT;// keep track of the sum
+            e_sum_L = .9 * e_sum_L + e_L * deltaT;
             e_sum_R = .9 * e_sum_R + e_R * deltaT;
-            
-            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr)); // keep this sum less than max err. IDK why
+
+            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr));
             e_sum_R = Math.Max(-maxErr, Math.Min(e_sum_R, maxErr));
 
             u_L = ((K_p * e_L) + (K_i * e_sum_L) + (K_d * (e_L - e_L_last) / deltaT));
@@ -501,18 +502,16 @@ namespace DrRobot.JaguarControl
         {
             double goalX = desiredX - x;
             double goalY = desiredY - y;
-           
+
 
             // t = theta
             // 
 
-            double desiredV, desiredW,deltaT, kTheta, pho, alpha, beta;
-            if (Math.abs((-t + Math.Atan2(goalY, goalX)) > (Math.PI/2)))
-            //need to check in the local c.f. alpha grea
-
+            double desiredV, desiredW, deltaT, kTheta, pho, alpha, beta;
+            if (((-t + Math.Atan2(goalY, goalX)) > (Math.PI / 2)) | ((-t + Math.Atan2(goalY, goalX)) < -(Math.PI / 2))) //need to check in the local c.f. alpha grea
             { //we are headed in the backward direction
                 pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                alpha = -t + Math.Atan2(-goalY, -goalX);//
+                alpha = -t + Math.Atan2(-goalY, -goalX);
                 beta = -t - alpha + desiredT;
 
                 alpha = newNormalizeAngle(alpha);
@@ -524,13 +523,13 @@ namespace DrRobot.JaguarControl
             else if ((Math.Abs(goalX) <= .02) & (Math.Abs(goalY) <= .02))
             {
                 pho = 0;
-                kTheta= 2.0; // not sure yet
+                kTheta = 2.0; // not sure yet
                 //if (goalX < 0)
                 //{
-                    deltaT = desiredT - t; // goal theta minus current theta
-                    deltaT = newNormalizeAngle(deltaT);
-                    desiredV = pho; // is 0 because pho is 0
-                    desiredW = deltaT * kTheta;
+                deltaT = desiredT - t; // goal theta minus current theta
+                deltaT = newNormalizeAngle(deltaT);
+                desiredV = pho; // is 0 because pho is 0
+                desiredW = deltaT * kTheta;
 
             }
             else
