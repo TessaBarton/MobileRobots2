@@ -55,7 +55,7 @@ namespace DrRobot.JaguarControl
         const double phoTrackingAccuracy = 0.10;
         double time = 0;
         DateTime startTime;
-
+        public bool closeToDestination;
         public short K_P = 15;//15;
         public short K_I = 0;//0;
         public short K_D = 3;//3;
@@ -353,41 +353,51 @@ namespace DrRobot.JaguarControl
             motorSignalR = (short)(desiredRotRateR);
 
         }
-        public void CalcMotorSignals()
+
+        public void CalcMotorSignals() // PID Controller
         {
-            short zeroOutput = 16383;
+            short zeroOutput = 16383; // I think this might be < 20
             short maxPosOutput = 32767;
 
-            double K_p = 25; ;
-            double K_i = 0.1;
-            double K_d = 1;
+            double K_p = 21; 
+            double K_i = 1.2;
+            double K_d = .05;
 
             double maxErr = 8000 / deltaT;
+            if (closeToDestination == true)
+            {
+                K_p = 23;
+                K_i = 5;
+                K_d = 0;// causes erratic behavior
+            }
 
-
-            e_L = desiredRotRateL - diffEncoderPulseL / deltaT;
+            e_L = desiredRotRateL - diffEncoderPulseL / deltaT; //difference between real speed and desired speed/10
             e_R = desiredRotRateR - diffEncoderPulseR / deltaT;
 
-            e_sum_L = .9 * e_sum_L + e_L * deltaT;
+            e_sum_L = .9 * e_sum_L + e_L * deltaT; // update sum of errors
             e_sum_R = .9 * e_sum_R + e_R * deltaT;
 
-            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr));
+            e_sum_L = Math.Max(-maxErr, Math.Min(e_sum_L, maxErr)); // make sure the error isn't to crazy
             e_sum_R = Math.Max(-maxErr, Math.Min(e_sum_R, maxErr));
 
-            u_L = ((K_p * e_L) + (K_i * e_sum_L) + (K_d * (e_L - e_L_last) / deltaT));
-            e_L_last = e_L;
+            u_L = ((K_p * e_L)+(K_i * e_sum_L) + (K_d * (e_L - e_L_last) / deltaT)); //PID
+            e_R_last = e_R;
+
+
+
 
             u_R = ((K_p * e_R) + (K_i * e_sum_R) + (K_d * (e_R - e_R_last) / deltaT));
             e_R_last = e_R;
+
+            
             // The following settings are used to help develop the controller in simulation.
             // They will be replaced when the actual jaguar is used.
             //motorSignalL = (short)(zeroOutput + desiredRotRateL * 100);// (zeroOutput + u_L);
             //motorSignalR = (short)(zeroOutput - desiredRotRateR * 100);//(zeroOutput - u_R);
-
-            motorSignalL = (short)(zeroOutput + u_L);
+            motorSignalL = (short)(zeroOutput + u_L); // why is this
             motorSignalR = (short)(zeroOutput - u_R);
-
-            motorSignalL = (short)Math.Min(maxPosOutput, Math.Max(0, (int)motorSignalL));
+            
+            motorSignalL = (short)Math.Min(maxPosOutput, Math.Max(0, (int)motorSignalL));// make sure signal is positive and below max
             motorSignalR = (short)Math.Min(maxPosOutput, Math.Max(0, (int)motorSignalR));
 
 
@@ -432,7 +442,7 @@ namespace DrRobot.JaguarControl
             //int fileCnt= 0;
             String date = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Minute.ToString();
             ToString();
-            logFile = File.CreateText("JaguarData_" + date + ".txt");
+            logFile = File.CreateText("JaguarData_" + date + ".csv");
             startTime = DateTime.Now;
             loggingOn = true;
         }
@@ -455,7 +465,9 @@ namespace DrRobot.JaguarControl
             {
                 TimeSpan ts = DateTime.Now - startTime;
                 time = ts.TotalSeconds;
-                String newData = time.ToString() + " " + x.ToString() + " " + y.ToString() + " " + t.ToString();
+                String newData = time.ToString() + "," + x.ToString() + "," + y.ToString() + "," + t.ToString()+","+
+                    desiredRotRateL.ToString() + "," + desiredRotRateR.ToString() + "," + motorSignalL.ToString() + "," +
+                    motorSignalR.ToString();
 
                 logFile.WriteLine(newData);
             }
@@ -494,55 +506,59 @@ namespace DrRobot.JaguarControl
         double newNormalizeAngle(double angle)
         {
             double newAngle = angle;
-            while (newAngle <= -Math.PI) newAngle = newAngle + 2 * Math.PI;
-            while (newAngle > Math.PI) newAngle = newAngle + 2 * Math.PI;
+            while (newAngle <= -Math.PI) newAngle += 2*Math.PI;
+            while (newAngle > Math.PI) newAngle -= 2*Math.PI;
             return newAngle;
         }
         private void FlyToSetPoint()
         {
+
+            closeToDestination = false;
             double goalX = desiredX - x;
             double goalY = desiredY - y;
 
+            double desiredV, desiredW,deltaT, kTheta, pho, alpha, beta;
 
-            // t = theta
-            // 
 
-            double desiredV, desiredW, deltaT, kTheta, pho, alpha, beta;
-            if (((-t + Math.Atan2(goalY, goalX)) > (Math.PI / 2)) | ((-t + Math.Atan2(goalY, goalX)) < -(Math.PI / 2))) //need to check in the local c.f. alpha grea
-            { //we are headed in the backward direction
-                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
-                alpha = -t + Math.Atan2(-goalY, -goalX);
-                beta = -t - alpha + desiredT;
-
-                alpha = newNormalizeAngle(alpha);
-                beta = newNormalizeAngle(beta);
-                desiredV = -Kpho * pho;
-                desiredW = Kalpha * alpha + Kbeta * beta;
-
-            }
-            else if ((Math.Abs(goalX) <= .02) & (Math.Abs(goalY) <= .02))
+            if ((Math.Abs(goalX) <= .07) && (Math.Abs(goalY) <= .07))// need to adjust to make sure it doesn't kick itself out.
             {
-                pho = 0;
-                kTheta = 2.0; // not sure yet
+                closeToDestination = true;
+                kTheta = 2.5; // not sure yet
                 //if (goalX < 0)
                 //{
                 deltaT = desiredT - t; // goal theta minus current theta
                 deltaT = newNormalizeAngle(deltaT);
-                desiredV = pho; // is 0 because pho is 0
+                desiredV = 0; // is 0 because pho is 0
                 desiredW = deltaT * kTheta;
 
             }
             else
-            {// we are headed forward
-                //transform coordinate systems
-                pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0)); //pho is linear distance
-                alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
-                beta = -t - alpha - desiredT; //angle between pho idk
-                alpha = newNormalizeAngle(alpha);
-                beta = newNormalizeAngle(beta);
-                desiredV = Kpho * pho;
-                desiredW = (Kalpha * alpha) + (Kbeta * beta); //correct
+            {
 
+                if (((-t + Math.Atan2(goalY, goalX)) > (Math.PI / 2)) || ((-t + Math.Atan2(goalY, goalX)) < (-Math.PI / 2))) //need to check in the local c.f. alpha grea
+                { //we are headed in the backward direction
+                    pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0));// distance from curLoc to desLoc
+                    alpha = -t + Math.Atan2(-goalY, -goalX);//
+                    beta = -t - alpha + desiredT;
+
+                    alpha = newNormalizeAngle(alpha);
+                    beta = newNormalizeAngle(beta);
+                    desiredV = -Kpho * pho;
+                    desiredW = Kalpha * alpha + Kbeta * beta;
+
+                }
+                else
+                {// we are headed forward
+                    //transform coordinate systems
+                    pho = Math.Sqrt(Math.Pow(goalX, 2.0) + Math.Pow(goalY, 2.0)); //pho is linear distance
+                    alpha = -t + Math.Atan2(goalY, goalX); // alpha is angle between robot facing and destination
+                    beta = -t - alpha + desiredT; //angle between pho idk
+                    alpha = newNormalizeAngle(alpha);
+                    beta = newNormalizeAngle(beta);
+                    desiredV = Kpho * pho;
+                    desiredW = (Kalpha * alpha) + (Kbeta * beta); //correct
+
+                }
             }
 
             //calculate rotational velocities, convert to wheel rotation rates
@@ -551,38 +567,41 @@ namespace DrRobot.JaguarControl
             //transform rot velocity into wheel's contributions
             double omegaR = ((2 * robotRadius * rotVelocity1) / wheelRadius);
             double omegaL = ((-2 * robotRadius * rotVelocity2) / wheelRadius);
+
             // ensure that the velocities do not exceed the maximum velocity
             double maxRadPerSec = .25 / wheelRadius; // maximum radians per second
-            if ((Math.Abs(omegaL) > maxRadPerSec) & (Math.Abs(omegaR) > maxRadPerSec))
+            if ((Math.Abs(omegaL) > maxRadPerSec) && (Math.Abs(omegaR) > maxRadPerSec))
             {
                 omegaR = omegaR / 10;
                 omegaL = omegaL / 10;
             }
-            else if (Math.Abs(omegaL) > maxRadPerSec)
+            else if (Math.Abs(omegaL) >= maxRadPerSec)
                 omegaL = omegaL / 10;
-            else if (Math.Abs(omegaR) > maxRadPerSec)
+            else if (Math.Abs(omegaR) >= maxRadPerSec)
                 omegaR = omegaR / 10;
 
             // convert to encoder pulses per second
-
             desiredRotRateR = (short)(omegaR * (1 / (2 * Math.PI * wheelRadius)) * 190);
             desiredRotRateL = (short)((omegaL * (1 / (2 * Math.PI * wheelRadius)) * 190));
 
-
             if (jaguarControl.Simulating())
                 simulatedJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
-            else
-            {
-                realJaguar.DcMotorPwmNonTimeCtrAll(0, 0, 0, (short)desiredRotRateL, (short)desiredRotRateR, 0);
-            }
+            //else we go right to calc motor signals.
         }
-
 
 
 
         // THis function is called to follow a trajectory constructed by PRMMotionPlanner()
         private void TrackTrajectory()
         {
+            /* trajectory #1
+             * piecewise defined trajectory, y=1 for -2<y<2, y>2 then x = 2
+             * 
+             */
+             
+            
+            
+
 
         }
 
